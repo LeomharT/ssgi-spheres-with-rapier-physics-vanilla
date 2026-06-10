@@ -1,9 +1,11 @@
+import { Color, MathUtils } from "three";
 import "./style.css";
 
 function r(min: number, max: number) {
   return Math.random() * (max - min) + min;
 }
 
+let c = 0;
 const colors = ["#ff4060", "#ffcc00", "#20ffa0", "#4060ff"];
 
 const sizes = {
@@ -39,7 +41,7 @@ const position = Array.from({ length: 350 }, (_, i) => ({
   x: r(0, sizes.width),
   y: r(0, sizes.height),
   angle: 0,
-  color: colors[i % colors.length],
+  color: `rgb(${r(0, 255)},${r(0, 255)},${r(0, 255)})`,
   length: r(200, 450),
 }));
 
@@ -63,10 +65,10 @@ function drawLines() {
   }
 }
 
-function drawPointer(x: number, y: number) {
+function drawPointer(x: number, y: number, color: string) {
   ctx.save();
 
-  ctx.fillStyle = colors[0];
+  ctx.fillStyle = color;
   ctx.beginPath();
   ctx.arc(x, y, 30, 0, Math.PI * 2);
   ctx.fill();
@@ -76,19 +78,20 @@ function drawPointer(x: number, y: number) {
 
 let prevTime = 0;
 
-let angle = 0;
-
 let accelerationX = 0;
 let translateX = 0;
 
 let accelerationY = 0;
 let translateY = 0;
 
+const currentColor = new Color(colors[c]);
+const color = new Color();
+
 function render(time: number = 0) {
+  color.set(colors[c]);
+
   const dt = (time - prevTime) / 1000;
   prevTime = time;
-
-  angle += dt;
 
   accelerationX += cursor.x - translateX;
   accelerationX *= 0.9;
@@ -102,10 +105,16 @@ function render(time: number = 0) {
     p.angle = Math.atan2(translateY - p.y, translateX - p.x) + Math.PI / 2;
   }
 
+  currentColor.setRGB(
+    MathUtils.damp(currentColor.r, color.r, 3, dt),
+    MathUtils.damp(currentColor.g, color.g, 3, dt),
+    MathUtils.damp(currentColor.b, color.b, 3, dt),
+  );
+
   // Update
   clear();
   drawLines();
-  drawPointer(translateX, translateY);
+  drawPointer(translateX, translateY, currentColor.getStyle());
 
   // Animation
   requestAnimationFrame(render);
@@ -113,12 +122,12 @@ function render(time: number = 0) {
 
 render();
 
-drawPointer(sizes.width / 2, sizes.height / 2);
-
 window.addEventListener("pointermove", (e) => {
   cursor.x = e.clientX;
   cursor.y = e.clientY;
 });
+
+window.addEventListener("pointerdown", () => (c = (c + 1) % colors.length));
 
 window.addEventListener("resize", () => {
   sizes.width = window.innerWidth;
