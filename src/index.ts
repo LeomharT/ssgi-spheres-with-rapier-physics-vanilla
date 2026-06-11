@@ -1,4 +1,4 @@
-import { ColliderDesc, RigidBody, RigidBodyDesc, World } from '@dimforge/rapier3d';
+import { ColliderDesc, RigidBody, RigidBodyDesc, RigidBodyType, World } from '@dimforge/rapier3d';
 import * as EssentialsPlugin from '@tweakpane/plugin-essentials';
 import {
   AmbientLight,
@@ -163,6 +163,13 @@ for (const s of shuffle(accent)) {
   };
 }
 
+const pointerRigidBodyDesc = RigidBodyDesc.dynamic();
+const pointerRididBody = world.createRigidBody(pointerRigidBodyDesc);
+pointerRididBody.setBodyType(RigidBodyType.KinematicPositionBased, true);
+
+const pointerColliderDesc = ColliderDesc.ball(1);
+world.createCollider(pointerColliderDesc, pointerRididBody);
+
 const light = new DirectionalLight('#ffffff', 1);
 light.position.set(5, 5, 5);
 light.castShadow = true;
@@ -260,6 +267,13 @@ render();
 
 window.addEventListener('pointerdown', () => {
   accent = (accent + 1) % accents.length;
+});
+
+window.addEventListener('pointermove', (e) => {
+  const x = (e.clientX / sizes.width) * 2 - 1;
+  const y = -(e.clientY / sizes.height) * 2 + 1;
+
+  pointerRididBody.setNextKinematicTranslation({ x: x * 5, y: y * 5, z: 0 });
 });
 
 window.addEventListener('resize', () => {
