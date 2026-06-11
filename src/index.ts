@@ -1,12 +1,13 @@
 import { ColliderDesc, RigidBody, RigidBodyDesc, RigidBodyType, World } from '@dimforge/rapier3d';
 import * as EssentialsPlugin from '@tweakpane/plugin-essentials';
 import {
-  AmbientLight,
   AxesHelper,
   BufferAttribute,
   BufferGeometry,
   Color,
-  DirectionalLight,
+  CubeCamera,
+  CubeRefractionMapping,
+  HalfFloatType,
   LineBasicMaterial,
   LineSegments,
   MathUtils,
@@ -20,6 +21,7 @@ import {
   SphereGeometry,
   Timer,
   Vector3,
+  WebGLCubeRenderTarget,
   WebGLRenderer,
 } from 'three';
 import { ThreePerf } from 'three-perf';
@@ -93,6 +95,8 @@ el?.append(renderer.domElement);
 const scene = new Scene();
 scene.background = new Color('#141622');
 
+const envScene = new Scene();
+
 const camera = new PerspectiveCamera(17.5, sizes.width / sizes.height, 10, 100);
 camera.position.set(0, 0, 30);
 camera.lookAt(scene.position);
@@ -102,6 +106,15 @@ controls.enableDamping = true;
 controls.enabled = isDebug;
 
 const timer = new Timer();
+
+const cubeRenderTarget = new WebGLCubeRenderTarget(256, {
+  generateMipmaps: true,
+  type: HalfFloatType,
+  mapping: CubeRefractionMapping,
+});
+const cubeCamera = new CubeCamera(0.1, 100, cubeRenderTarget);
+
+scene.environment = cubeRenderTarget.texture;
 
 // World
 const world = new World(gravity);
@@ -169,13 +182,6 @@ pointerRididBody.setBodyType(RigidBodyType.KinematicPositionBased, true);
 
 const pointerColliderDesc = ColliderDesc.ball(1);
 world.createCollider(pointerColliderDesc, pointerRididBody);
-
-const light = new DirectionalLight('#ffffff', 1);
-light.position.set(5, 5, 5);
-light.castShadow = true;
-scene.add(light);
-
-scene.add(new AmbientLight(0xffffff, 0.5));
 
 // Helpers
 const axesHelper = new AxesHelper(10);
@@ -256,6 +262,11 @@ function render() {
 
   // Render
   renderDebug();
+
+  cubeCamera.update(renderer, scene);
+
+  renderer.autoClear = true;
+
   renderer.render(scene, camera);
 
   perf.end();
