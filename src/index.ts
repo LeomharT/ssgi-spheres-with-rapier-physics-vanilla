@@ -14,7 +14,6 @@ import {
   BufferGeometry,
   Color,
   CubeCamera,
-  CubeRefractionMapping,
   DoubleSide,
   Group,
   HalfFloatType,
@@ -124,11 +123,11 @@ const timer = new Timer();
 const cubeRenderTarget = new WebGLCubeRenderTarget(256, {
   generateMipmaps: true,
   type: HalfFloatType,
-  mapping: CubeRefractionMapping,
 });
 const cubeCamera = new CubeCamera(0.1, 100, cubeRenderTarget);
 
 scene.environment = cubeRenderTarget.texture;
+scene.environmentIntensity = 0.15;
 
 // Post processiong
 const composer = new EffectComposer(renderer, { alpha: true, multisampling: 0 });
@@ -155,21 +154,21 @@ const config = {
   specularPhi: 7.099999999999999,
   envBlur: 0.8,
 };
+
+const bloomPass = new BloomEffect({
+  mipmapBlur: true,
+  luminanceThreshold: 0.1,
+  intensity: 0.9,
+  levels: 7,
+});
+
 composer.addPass(new RenderPass(scene, camera));
 const velocityDepthNormalPass = new VelocityDepthNormalPass(scene, camera);
+const ssgiEffect = new SSGIEffect(composer, scene, camera, { ...config, velocityDepthNormalPass });
+
 composer.addPass(velocityDepthNormalPass);
-composer.addPass(new EffectPass(camera, new SSGIEffect(composer, scene, camera, config)));
-composer.addPass(
-  new EffectPass(
-    camera,
-    new BloomEffect({
-      mipmapBlur: true,
-      luminanceThreshold: 0.1,
-      intensity: 0.9,
-      levels: 7,
-    }),
-  ),
-);
+composer.addPass(new EffectPass(camera, ssgiEffect));
+composer.addPass(new EffectPass(camera, bloomPass));
 composer.addPass(new EffectPass(camera, new FXAAEffect(), new ToneMappingEffect()));
 
 // World
