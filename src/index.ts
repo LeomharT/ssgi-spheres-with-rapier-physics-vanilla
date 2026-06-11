@@ -1,142 +1,109 @@
-import { Color, MathUtils } from "three";
+import { World } from "@dimforge/rapier3d";
+import * as EssentialsPlugin from "@tweakpane/plugin-essentials";
+import {
+  AxesHelper,
+  Color,
+  PCFShadowMap,
+  PerspectiveCamera,
+  Scene,
+  WebGLRenderer,
+} from "three";
+import { ThreePerf } from "three-perf";
+import { OrbitControls } from "three/examples/jsm/Addons.js";
+import { Pane } from "tweakpane";
 import "./style.css";
 
-function r(min: number, max: number) {
-  return Math.random() * (max - min) + min;
-}
-
-let c = 0;
-const colors = ["#ff4060", "#ffcc00", "#20ffa0", "#4060ff"];
-
+// Variables
 const sizes = {
   width: window.innerWidth,
   height: window.innerHeight,
+  pixelRatio: Math.min(2, window.devicePixelRatio),
 };
 
 const el = document.querySelector("#root");
 
-const canvas = document.createElement("canvas");
-canvas.width = sizes.width;
-canvas.height = sizes.height;
-canvas.style.width = sizes.width + "px";
-canvas.style.height = sizes.height + "px";
-el?.append(canvas);
+const isDebug = window.location.hash === "#debug";
 
-const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+const gravity = { x: 0, y: -9.81, z: 0 };
 
-const cursor = {
-  x: sizes.width / 2,
-  y: sizes.height / 2,
-};
+// Core
+const renderer = new WebGLRenderer({
+  alpha: true,
+  antialias: false,
+  powerPreference: "high-performance",
+});
+renderer.setSize(sizes.width, sizes.height);
+renderer.setPixelRatio(sizes.pixelRatio);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = PCFShadowMap;
+el?.append(renderer.domElement);
 
-function clear() {
-  ctx.save();
-  ctx.fillStyle = "#141622";
-  ctx.fillRect(0, 0, sizes.width, sizes.height);
-  ctx.restore();
-}
-clear();
+const scene = new Scene();
+scene.background = new Color("#141622");
 
-const position = Array.from({ length: 350 }, (_, i) => ({
-  x: r(0, sizes.width),
-  y: r(0, sizes.height),
-  angle: 0,
-  color: `rgb(${r(0, 255)},${r(0, 255)},${r(0, 255)})`,
-  length: r(200, 450),
-}));
+const camera = new PerspectiveCamera(17.5, sizes.width / sizes.height, 10, 40);
+camera.position.set(0, 0, 30);
+camera.lookAt(scene.position);
 
-function drawLines() {
-  for (let i = 0; i < position.length; i++) {
-    const p = position[i];
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.enabled = isDebug;
 
-    ctx.save();
+// World
+const world = new World(gravity);
+world.timestep = 1 / 60;
 
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = p.color;
+// Helpers
+const axesHelper = new AxesHelper(10);
+scene.add(axesHelper);
 
-    ctx.translate(p.x, p.y);
-    ctx.rotate(p.angle);
-    ctx.beginPath();
-    ctx.moveTo(-p.length / 2, 0);
-    ctx.lineTo(p.length / 2, 0);
-    ctx.stroke();
+// Pane
+const pane = new Pane({ title: "Debug Pane" });
+pane.element.parentElement!.style.width = "380px";
+pane.registerPlugin(EssentialsPlugin);
 
-    ctx.restore();
-  }
-}
-
-function drawPointer(x: number, y: number, color: string) {
-  ctx.save();
-
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.arc(x, y, 30, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.restore();
-}
-
-let prevTime = 0;
-
-let accelerationX = 0;
-let translateX = 0;
-
-let accelerationY = 0;
-let translateY = 0;
-
-const currentColor = new Color(colors[c]);
-const color = new Color();
-
-function render(time: number = 0) {
-  color.set(colors[c]);
-
-  const dt = (time - prevTime) / 1000;
-  prevTime = time;
-
-  accelerationX += cursor.x - translateX;
-  accelerationX *= 0.9;
-  translateX += accelerationX * 0.02;
-
-  accelerationY += cursor.y - translateY;
-  accelerationY *= 0.9;
-  translateY += accelerationY * 0.02;
-
-  for (const p of position) {
-    p.angle = Math.atan2(translateY - p.y, translateX - p.x) + Math.PI / 2;
-  }
-
-  currentColor.setRGB(
-    MathUtils.damp(currentColor.r, color.r, 3, dt),
-    MathUtils.damp(currentColor.g, color.g, 3, dt),
-    MathUtils.damp(currentColor.b, color.b, 3, dt),
-  );
-
-  // Update
-  clear();
-  drawLines();
-  drawPointer(translateX, translateY, currentColor.getStyle());
-
-  // Animation
-  requestAnimationFrame(render);
-}
-
-render();
-
-window.addEventListener("pointermove", (e) => {
-  cursor.x = e.clientX;
-  cursor.y = e.clientY;
+const fpsGraph: any = pane.addBlade({
+  view: "fpsgraph",
+  label: undefined,
+  rows: 3,
+});
+const perf = new ThreePerf({
+  anchorX: "left",
+  anchorY: "top",
+  domElement: document.body,
+  renderer: renderer,
+  backgroundOpacity: 0.0,
 });
 
-window.addEventListener("pointerdown", () => (c = (c + 1) % colors.length));
+if (!isDebug) {
+  pane.dispose();
+  perf.dispose();
+}
+
+// Events
+function render() {
+  perf.begin();
+  fpsGraph.begin();
+
+  // Update
+  world.step();
+  controls.update();
+  // Render
+  renderer.render(scene, camera);
+
+  perf.end();
+  fpsGraph.end();
+  // Loop
+  requestAnimationFrame(render);
+}
+render();
 
 window.addEventListener("resize", () => {
   sizes.width = window.innerWidth;
   sizes.height = window.innerHeight;
 
-  canvas.width = sizes.width;
-  canvas.height = sizes.height;
-  canvas.style.width = sizes.width + "px";
-  canvas.style.height = sizes.height + "px";
+  renderer.setSize(sizes.width, sizes.height);
 
-  clear();
+  camera.aspect = sizes.width / sizes.height;
+  camera.updateProjectionMatrix();
 });
