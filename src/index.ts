@@ -1,6 +1,14 @@
 import { ColliderDesc, RigidBody, RigidBodyDesc, RigidBodyType, World } from '@dimforge/rapier3d';
 import * as EssentialsPlugin from '@tweakpane/plugin-essentials';
 import {
+  BloomEffect,
+  EffectComposer,
+  EffectPass,
+  FXAAEffect,
+  RenderPass,
+  ToneMappingEffect,
+} from 'postprocessing';
+import {
   AxesHelper,
   BufferAttribute,
   BufferGeometry,
@@ -31,6 +39,7 @@ import {
 import { ThreePerf } from 'three-perf';
 import { OrbitControls } from 'three/examples/jsm/Addons.js';
 import { Pane } from 'tweakpane';
+import { SSGIEffect, VelocityDepthNormalPass } from './lib/realism-effects/v2.js';
 import './style.css';
 
 // Variables
@@ -121,6 +130,48 @@ const cubeCamera = new CubeCamera(0.1, 100, cubeRenderTarget);
 
 scene.environment = cubeRenderTarget.texture;
 
+// Post processiong
+const composer = new EffectComposer(renderer, { alpha: true, multisampling: 0 });
+composer.setSize(sizes.width, sizes.height);
+const config = {
+  importanceSampling: true,
+  steps: 20,
+  refineSteps: 4,
+  spp: 1,
+  resolutionScale: 1,
+  missedRays: false,
+  distance: 5.980000000000011,
+  thickness: 2.829999999999997,
+  denoiseIterations: 1,
+  denoiseKernel: 3,
+  denoiseDiffuse: 25,
+  denoiseSpecular: 25.54,
+  radius: 11,
+  phi: 0.5760000000000001,
+  lumaPhi: 20.651999999999997,
+  depthPhi: 23.37,
+  normalPhi: 26.087,
+  roughnessPhi: 18.477999999999998,
+  specularPhi: 7.099999999999999,
+  envBlur: 0.8,
+};
+composer.addPass(new RenderPass(scene, camera));
+const velocityDepthNormalPass = new VelocityDepthNormalPass(scene, camera);
+composer.addPass(velocityDepthNormalPass);
+composer.addPass(new EffectPass(camera, new SSGIEffect(composer, scene, camera, config)));
+composer.addPass(
+  new EffectPass(
+    camera,
+    new BloomEffect({
+      mipmapBlur: true,
+      luminanceThreshold: 0.1,
+      intensity: 0.9,
+      levels: 7,
+    }),
+  ),
+);
+composer.addPass(new EffectPass(camera, new FXAAEffect(), new ToneMappingEffect()));
+
 // World
 const world = new World(gravity);
 world.timestep = 1 / 60;
@@ -134,13 +185,6 @@ const debug = new LineSegments(
 debug.frustumCulled = false;
 debug.visible = isDebug;
 scene.add(debug);
-
-const planeGeometry = new PlaneGeometry(10, 10, 16, 16);
-const planeMaterial = new MeshBasicMaterial({
-  wireframe: true,
-});
-const plane = new Mesh(planeGeometry, planeMaterial);
-scene.add(plane);
 
 const sphereGeometry = new SphereGeometry(1, 64, 64);
 
@@ -315,7 +359,7 @@ function render() {
 
   renderer.autoClear = true;
 
-  renderer.render(scene, camera);
+  composer.render(dt);
 
   perf.end();
   fpsGraph.end();
