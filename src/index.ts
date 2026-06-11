@@ -16,11 +16,9 @@ import {
   PCFShadowMap,
   PerspectiveCamera,
   PlaneGeometry,
-  Raycaster,
   Scene,
   SphereGeometry,
   Timer,
-  Vector2,
   Vector3,
   WebGLRenderer,
 } from 'three';
@@ -41,9 +39,6 @@ const el = document.querySelector('#root');
 const isDebug = window.location.hash === '#debug';
 
 const gravity = { x: 0, y: 0, z: 0 };
-
-const cursor = new Vector2();
-const pointer = new Vector3();
 
 let accent = 0;
 const accents = ['#ff4060', '#ffcc00', '#20ffa0', '#4060ff'];
@@ -107,8 +102,6 @@ controls.enableDamping = true;
 controls.enabled = isDebug;
 
 const timer = new Timer();
-
-const raycaster = new Raycaster();
 
 // World
 const world = new World(gravity);
@@ -265,19 +258,8 @@ function render() {
 }
 render();
 
-window.addEventListener('pointerdown', (e) => {
+window.addEventListener('pointerdown', () => {
   accent = (accent + 1) % accents.length;
-
-  console.log(accent);
-
-  cursor.x = (e.clientX / sizes.width) * 2 - 1;
-  cursor.y = -(e.clientY / sizes.height) * 2 + 1;
-
-  raycaster.setFromCamera(cursor, camera);
-
-  const intersect = raycaster.intersectObject(plane);
-
-  if (intersect.length) pointer.copy(intersect[0].point);
 });
 
 window.addEventListener('resize', () => {
