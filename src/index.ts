@@ -7,6 +7,8 @@ import {
   Color,
   CubeCamera,
   CubeRefractionMapping,
+  DoubleSide,
+  Group,
   HalfFloatType,
   LineBasicMaterial,
   LineSegments,
@@ -14,9 +16,11 @@ import {
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
+  NoToneMapping,
   PCFShadowMap,
   PerspectiveCamera,
   PlaneGeometry,
+  RingGeometry,
   Scene,
   SphereGeometry,
   Timer,
@@ -90,6 +94,7 @@ renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(sizes.pixelRatio);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = PCFShadowMap;
+renderer.toneMapping = NoToneMapping;
 el?.append(renderer.domElement);
 
 const scene = new Scene();
@@ -183,6 +188,49 @@ pointerRididBody.setBodyType(RigidBodyType.KinematicPositionBased, true);
 const pointerColliderDesc = ColliderDesc.ball(1);
 world.createCollider(pointerColliderDesc, pointerRididBody);
 
+function createLightFormer(
+  form: 'circle' | 'ring' | 'rect' = 'rect',
+  intensity: number = 1,
+  color: string = 'white',
+  scale: number,
+  position: [number, number, number],
+  rotation: [number, number, number],
+) {
+  const geometry = {
+    circle: new RingGeometry(0, 0.5, 64),
+    ring: new RingGeometry(0.25, 0.5, 64),
+    rect: new PlaneGeometry(1, 1),
+  };
+  const material = new MeshBasicMaterial({
+    color: new Color(color).multiplyScalar(intensity),
+    toneMapped: false,
+    side: DoubleSide,
+  });
+  const mesh = new Mesh(geometry[form], material);
+  mesh.scale.setScalar(scale);
+  mesh.position.set(...position);
+  mesh.rotation.set(...rotation);
+  return mesh;
+}
+
+const group = new Group();
+
+const lightFormer1 = createLightFormer('circle', 100, 'white', 2, [0, 5, -9], [Math.PI / 2, 0, 0]);
+const lightFormer2 = createLightFormer('circle', 2, 'white', 2, [-5, 1, -1], [0, Math.PI / 2, 0]);
+const lightFormer3 = createLightFormer('circle', 2, 'white', 2, [-5, -1, -1], [0, Math.PI / 2, 0]);
+const lightFormer4 = createLightFormer('circle', 2, 'white', 8, [10, 1, 0], [0, -Math.PI / 2, 0]);
+const lightFormer5 = createLightFormer('ring', 80, '#4060ff', 10, [10, 10, 0], [0, 0, 0]);
+lightFormer5.lookAt(envScene.position);
+
+group.add(lightFormer1);
+group.add(lightFormer2);
+group.add(lightFormer3);
+group.add(lightFormer4);
+group.add(lightFormer5);
+group.rotation.set(-Math.PI / 3, 0, 1);
+
+envScene.add(group);
+
 // Helpers
 const axesHelper = new AxesHelper(10);
 scene.add(axesHelper);
@@ -263,7 +311,7 @@ function render() {
   // Render
   renderDebug();
 
-  cubeCamera.update(renderer, scene);
+  cubeCamera.update(renderer, envScene);
 
   renderer.autoClear = true;
 
