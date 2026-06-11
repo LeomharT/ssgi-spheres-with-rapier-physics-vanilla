@@ -127,7 +127,7 @@ const cubeRenderTarget = new WebGLCubeRenderTarget(256, {
 const cubeCamera = new CubeCamera(0.1, 100, cubeRenderTarget);
 
 scene.environment = cubeRenderTarget.texture;
-scene.environmentIntensity = 0.15;
+scene.environmentIntensity = 0.1;
 
 // Post processiong
 const composer = new EffectComposer(renderer, { alpha: true, multisampling: 0 });
@@ -276,6 +276,7 @@ envScene.add(group);
 
 // Helpers
 const axesHelper = new AxesHelper(10);
+axesHelper.visible = isDebug;
 scene.add(axesHelper);
 
 // Pane
