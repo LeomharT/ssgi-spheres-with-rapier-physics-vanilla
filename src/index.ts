@@ -15,6 +15,7 @@ import {
   Color,
   CubeCamera,
   DoubleSide,
+  Euler,
   Group,
   HalfFloatType,
   LineBasicMaterial,
@@ -22,7 +23,9 @@ import {
   MathUtils,
   Mesh,
   MeshBasicMaterial,
+  MeshPhysicalMaterial,
   MeshStandardMaterial,
+  NormalBlending,
   NoToneMapping,
   PCFShadowMap,
   PerspectiveCamera,
@@ -30,13 +33,14 @@ import {
   RingGeometry,
   Scene,
   SphereGeometry,
+  TextureLoader,
   Timer,
   Vector3,
   WebGLCubeRenderTarget,
   WebGLRenderer,
 } from 'three';
 import { ThreePerf } from 'three-perf';
-import { OrbitControls } from 'three/examples/jsm/Addons.js';
+import { DecalGeometry, OrbitControls } from 'three/examples/jsm/Addons.js';
 import { Pane } from 'tweakpane';
 import { SSGIEffect, VelocityDepthNormalPass } from './lib/realism-effects/v2.js';
 import './style.css';
@@ -91,6 +95,9 @@ const spheres: Record<
     accent?: boolean;
   }
 > = {};
+
+const textureLodaer = new TextureLoader();
+const reactDecal = textureLodaer.load('/react.png');
 
 // Core
 const renderer = new WebGLRenderer({
@@ -182,7 +189,7 @@ const debug = new LineSegments(
   }),
 );
 debug.frustumCulled = false;
-debug.visible = isDebug;
+debug.visible = false;
 scene.add(debug);
 
 const sphereGeometry = new SphereGeometry(1, 64, 64);
@@ -200,7 +207,7 @@ function createSphere({ accent, ...props }: ReturnType<typeof shuffle>[number]) 
 
 for (const s of shuffle(accent)) {
   const sphere = createSphere(s);
-  scene.add(sphere);
+  // scene.add(sphere);
 
   const pos = new Vector3(
     MathUtils.randFloatSpread(10),
@@ -274,6 +281,50 @@ group.rotation.set(-Math.PI / 3, 0, 1);
 
 envScene.add(group);
 
+const ball = new Mesh(sphereGeometry, new MeshStandardMaterial({}));
+ball.position.y = 1;
+scene.add(ball);
+
+const config_c = {
+  position: { x: 0.0, y: 1.95, z: 0.82 },
+  rotation: { x: 2.28, y: 0.06, z: 0 },
+};
+function createDecal(mesh: Mesh) {
+  mesh.traverse((obj) => mesh.remove(obj));
+  mesh.updateMatrixWorld();
+
+  const decalGeometry = new DecalGeometry(
+    mesh,
+    new Vector3().copy(config_c.position),
+    new Euler(config_c.rotation.x, config_c.rotation.y, config_c.rotation.z, 'XYZ'),
+    new Vector3().setScalar(1.5),
+  );
+  const decalMaterial = new MeshPhysicalMaterial({
+    map: reactDecal,
+    transparent: true,
+    depthTest: true,
+    depthWrite: true,
+    polygonOffset: true,
+    polygonOffsetFactor: -4,
+    polygonOffsetUnits: -4,
+    metalness: 0.7,
+    roughness: 0.7,
+    thickness: 0,
+    ior: 1.5,
+    iridescence: 1,
+    iridescenceIOR: 1,
+    iridescenceThicknessRange: [300, 1500],
+    blending: NormalBlending,
+  });
+
+  const decal = new Mesh(decalGeometry, decalMaterial);
+  decal.position.sub(mesh.position);
+
+  mesh.add(decal);
+}
+
+createDecal(ball);
+
 // Helpers
 const axesHelper = new AxesHelper(10);
 axesHelper.visible = isDebug;
@@ -293,6 +344,9 @@ const f_physic = pane.addFolder({ title: '⚛️⚛️⚛️ Rapier World' });
 f_physic.addBinding(debug, 'visible', {
   label: 'Debug Visibility',
 });
+
+pane.addBinding(config_c, 'position', { step: 0.01 }).on('change', () => createDecal(ball));
+pane.addBinding(config_c, 'rotation', { step: 0.01 }).on('change', () => createDecal(ball));
 
 const perf = new ThreePerf({
   anchorX: 'left',
