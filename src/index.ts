@@ -207,7 +207,7 @@ function createSphere({ accent, ...props }: ReturnType<typeof shuffle>[number]) 
 
 for (const s of shuffle(accent)) {
   const sphere = createSphere(s);
-  // scene.add(sphere);
+  scene.add(sphere);
 
   const pos = new Vector3(
     MathUtils.randFloatSpread(10),
@@ -390,6 +390,9 @@ function updateSphere(dt: number) {
       );
     }
   }
+
+  ball.position.copy(pointerRididBody.translation());
+  ball.quaternion.copy(pointerRididBody.rotation());
 }
 
 function render() {
