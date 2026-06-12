@@ -319,7 +319,6 @@ function createDecal(mesh: Mesh) {
 
   const decal = new Mesh(decalGeometry, decalMaterial);
   decal.position.sub(mesh.position);
-
   mesh.add(decal);
 }
 

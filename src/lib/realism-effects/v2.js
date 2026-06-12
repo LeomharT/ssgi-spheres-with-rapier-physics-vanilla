@@ -701,6 +701,10 @@ class GBufferMaterial extends MeshPhysicalMaterial {
             void main() {
 					float a = opacity;
 
+          #ifdef USE_MAP
+            a *= texture2D( map, vMapUv ).a;
+          #endif
+
 					#ifdef USE_ALPHAMAP
 						a *= texture2D( alphaMap, vAlphaMapUv ).g;
 					#endif
