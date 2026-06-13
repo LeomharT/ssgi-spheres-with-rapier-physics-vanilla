@@ -174,8 +174,8 @@ const velocityDepthNormalPass = new VelocityDepthNormalPass(scene, camera);
 const ssgiEffect = new SSGIEffect(composer, scene, camera, { ...config, velocityDepthNormalPass });
 
 composer.addPass(velocityDepthNormalPass);
-composer.addPass(new EffectPass(camera, ssgiEffect));
-composer.addPass(new EffectPass(camera, bloomPass));
+// composer.addPass(new EffectPass(camera, ssgiEffect));
+// composer.addPass(new EffectPass(camera, bloomPass));
 composer.addPass(new EffectPass(camera, new FXAAEffect(), new ToneMappingEffect()));
 
 // World
@@ -207,7 +207,7 @@ function createSphere({ accent, ...props }: ReturnType<typeof shuffle>[number]) 
 
 for (const s of shuffle(accent)) {
   const sphere = createSphere(s);
-  scene.add(sphere);
+  // scene.add(sphere);
 
   const pos = new Vector3(
     MathUtils.randFloatSpread(10),
@@ -281,13 +281,12 @@ group.rotation.set(-Math.PI / 3, 0, 1);
 
 envScene.add(group);
 
-const ball = new Mesh(sphereGeometry, new MeshStandardMaterial({}));
-ball.position.y = 1;
+const ball = new Mesh(sphereGeometry, new MeshStandardMaterial({ wireframe: true }));
 scene.add(ball);
 
 const config_c = {
-  position: { x: 0.0, y: 1.95, z: 0.82 },
-  rotation: { x: 2.28, y: 0.06, z: 0 },
+  position: { x: 0.0, y: 0.6, z: 1.0 },
+  rotation: { x: -0.5, y: 0, z: 0 },
 };
 function createDecal(mesh: Mesh) {
   mesh.traverse((obj) => mesh.remove(obj));
@@ -391,8 +390,8 @@ function updateSphere(dt: number) {
     }
   }
 
-  ball.position.copy(pointerRididBody.translation());
-  ball.quaternion.copy(pointerRididBody.rotation());
+  // ball.position.copy(pointerRididBody.translation());
+  // ball.quaternion.copy(pointerRididBody.rotation());
 }
 
 function render() {
