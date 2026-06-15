@@ -59,6 +59,7 @@ const isDebug = window.location.hash === '#debug';
 
 const textureLodaer = new TextureLoader();
 const reactDecal = textureLodaer.load('/react.png');
+const threeDecal = textureLodaer.load('/three.png');
 
 const decals = {
   react: {
@@ -66,6 +67,14 @@ const decals = {
     config: {
       position: { x: 0.0, y: 0.6, z: 1.0 },
       rotation: { x: -0.5, y: 0, z: 0 },
+      scale: 1.5,
+    },
+  },
+  three: {
+    texture: threeDecal,
+    config: {
+      position: { x: 0.14, y: 0.6, z: 1.0 },
+      rotation: { x: -0.68, y: 0, z: 0 },
       scale: 1.5,
     },
   },
@@ -83,7 +92,7 @@ const shuffle = (accent = 0) => [
   { color: 'white', roughness: 0.1, metalness: 0.1 },
   { color: 'white', roughness: 0.1, metalness: 0.1 },
   { color: accents[accent], roughness: 0.1, accent: true, decal: decals.react },
-  { color: accents[accent], roughness: 0.1, accent: true },
+  { color: accents[accent], roughness: 0.1, accent: true, decal: decals.three },
   { color: accents[accent], roughness: 0.1, accent: true },
   { color: '#444', roughness: 0.1 },
   { color: '#444', roughness: 0.3 },
@@ -299,8 +308,8 @@ const ball = new Mesh(sphereGeometry, new MeshStandardMaterial({ wireframe: true
 scene.add(ball);
 
 const config_c = {
-  position: { x: 0.0, y: 0.6, z: 1.0 },
-  rotation: { x: -0.5, y: 0, z: 0 },
+  position: { x: 0.14, y: 0.6, z: 1.0 },
+  rotation: { x: -0.68, y: 0, z: 0 },
   scale: 1.5,
 };
 function createDecal(mesh: Mesh, texture: Texture, config: typeof config_c) {
@@ -336,7 +345,7 @@ function createDecal(mesh: Mesh, texture: Texture, config: typeof config_c) {
   mesh.add(decal);
 }
 
-createDecal(ball, reactDecal, config_c);
+createDecal(ball, threeDecal, config_c);
 
 // Helpers
 const axesHelper = new AxesHelper(10);
@@ -360,10 +369,10 @@ f_physic.addBinding(debug, 'visible', {
 
 pane
   .addBinding(config_c, 'position', { step: 0.01 })
-  .on('change', () => createDecal(ball, reactDecal, config_c));
+  .on('change', () => createDecal(ball, threeDecal, config_c));
 pane
   .addBinding(config_c, 'rotation', { step: 0.01 })
-  .on('change', () => createDecal(ball, reactDecal, config_c));
+  .on('change', () => createDecal(ball, threeDecal, config_c));
 
 const perf = new ThreePerf({
   anchorX: 'left',
