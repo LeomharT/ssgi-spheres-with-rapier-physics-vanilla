@@ -9,6 +9,7 @@ import {
   ToneMappingEffect,
 } from 'postprocessing';
 import {
+  AmbientLight,
   AxesHelper,
   BufferAttribute,
   BufferGeometry,
@@ -60,6 +61,7 @@ const isDebug = window.location.hash === '#debug';
 const textureLodaer = new TextureLoader();
 const reactDecal = textureLodaer.load('/react.png');
 const threeDecal = textureLodaer.load('/three.png');
+const tsDecal = textureLodaer.load('/ts.svg');
 
 const decals = {
   react: {
@@ -195,8 +197,8 @@ const velocityDepthNormalPass = new VelocityDepthNormalPass(scene, camera);
 const ssgiEffect = new SSGIEffect(composer, scene, camera, { ...config, velocityDepthNormalPass });
 
 composer.addPass(velocityDepthNormalPass);
-composer.addPass(new EffectPass(camera, ssgiEffect));
-composer.addPass(new EffectPass(camera, bloomPass));
+// composer.addPass(new EffectPass(camera, ssgiEffect));
+// composer.addPass(new EffectPass(camera, bloomPass));
 composer.addPass(new EffectPass(camera, new FXAAEffect(), new ToneMappingEffect()));
 
 // World
@@ -215,7 +217,7 @@ scene.add(debug);
 
 const sphereGeometry = new SphereGeometry(1, 64, 64);
 
-function createSphere({ accent, ...props }: ReturnType<typeof shuffle>[number]) {
+function createSphere({ accent, decal, ...props }: ReturnType<typeof shuffle>[number]) {
   const material = new MeshStandardMaterial({
     ...props,
   });
@@ -228,7 +230,7 @@ function createSphere({ accent, ...props }: ReturnType<typeof shuffle>[number]) 
 
 for (const s of shuffle(accent)) {
   const sphere = createSphere(s);
-  scene.add(sphere);
+  // scene.add(sphere);
 
   if (s.decal) createDecal(sphere, s.decal.texture, s.decal.config);
 
@@ -308,9 +310,9 @@ const ball = new Mesh(sphereGeometry, new MeshStandardMaterial({ wireframe: true
 scene.add(ball);
 
 const config_c = {
-  position: { x: 0.14, y: 0.6, z: 1.0 },
-  rotation: { x: -0.68, y: 0, z: 0 },
-  scale: 1.5,
+  position: { x: 0, y: 0.58, z: 0.62 },
+  rotation: { x: -0.8, y: 0, z: 0 },
+  scale: 1.3,
 };
 function createDecal(mesh: Mesh, texture: Texture, config: typeof config_c) {
   mesh.traverse((obj) => mesh.remove(obj));
@@ -330,7 +332,7 @@ function createDecal(mesh: Mesh, texture: Texture, config: typeof config_c) {
     polygonOffset: true,
     polygonOffsetFactor: -4,
     polygonOffsetUnits: -4,
-    metalness: 0.7,
+    metalness: 0.3,
     roughness: 0.7,
     thickness: 0,
     ior: 1.5,
@@ -345,7 +347,9 @@ function createDecal(mesh: Mesh, texture: Texture, config: typeof config_c) {
   mesh.add(decal);
 }
 
-createDecal(ball, threeDecal, config_c);
+createDecal(ball, tsDecal, config_c);
+
+scene.add(new AmbientLight(0xffffff, 1));
 
 // Helpers
 const axesHelper = new AxesHelper(10);
@@ -369,10 +373,23 @@ f_physic.addBinding(debug, 'visible', {
 
 pane
   .addBinding(config_c, 'position', { step: 0.01 })
-  .on('change', () => createDecal(ball, threeDecal, config_c));
+  .on('change', () => createDecal(ball, tsDecal, config_c));
 pane
   .addBinding(config_c, 'rotation', { step: 0.01 })
-  .on('change', () => createDecal(ball, threeDecal, config_c));
+  .on('change', () => createDecal(ball, tsDecal, config_c));
+pane
+  .addBinding(config_c, 'scale', { step: 0.01 })
+  .on('change', () => createDecal(ball, tsDecal, config_c));
+
+const multilines = { data: '' };
+pane
+  .addBinding(multilines, 'data', {
+    readonly: true,
+    multiline: true,
+    rows: 5,
+    label: 'config',
+  })
+  .on('change', () => (multilines.data = JSON.stringify(config_c, null, 2)));
 
 const perf = new ThreePerf({
   anchorX: 'left',
