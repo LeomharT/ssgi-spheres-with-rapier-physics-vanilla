@@ -9,7 +9,6 @@ import {
   ToneMappingEffect,
 } from 'postprocessing';
 import {
-  AmbientLight,
   AxesHelper,
   BufferAttribute,
   BufferGeometry,
@@ -62,6 +61,7 @@ const textureLodaer = new TextureLoader();
 const reactDecal = textureLodaer.load('/react.png');
 const threeDecal = textureLodaer.load('/three.png');
 const tsDecal = textureLodaer.load('/ts.svg');
+const jsDecal = textureLodaer.load('/js.png');
 
 const decals = {
   react: {
@@ -88,6 +88,14 @@ const decals = {
       scale: 1.3,
     },
   },
+  js: {
+    texture: jsDecal,
+    config: {
+      position: { x: 0, y: 0.58, z: 0.62 },
+      rotation: { x: -0.8, y: 0, z: 0 },
+      scale: 1.3,
+    },
+  },
 };
 
 const gravity = { x: 0, y: 0, z: 0 };
@@ -108,15 +116,9 @@ const shuffle = (accent = 0) => [
   { color: '#444', roughness: 0.3 },
   { color: '#444', roughness: 0.3 },
   { color: 'white', roughness: 0.1 },
-  { color: 'white', roughness: 0.2 },
+  { color: 'white', roughness: 0.2, decal: decals.js },
   { color: 'white', roughness: 0.1 },
-  {
-    color: accents[accent],
-    roughness: 0.1,
-    accent: true,
-    transparent: true,
-    opacity: 0.5,
-  },
+  { color: accents[accent], roughness: 0.1, accent: true, transparent: true, opacity: 0.5 },
   { color: accents[accent], roughness: 0.3, accent: true },
   { color: accents[accent], roughness: 0.1, accent: true },
 ];
@@ -238,7 +240,7 @@ function createSphere({ accent, decal, ...props }: ReturnType<typeof shuffle>[nu
 
 for (const s of shuffle(accent)) {
   const sphere = createSphere(s);
-  // scene.add(sphere);
+  scene.add(sphere);
 
   if (s.decal) createDecal(sphere, s.decal.texture, s.decal.config);
 
@@ -355,9 +357,9 @@ function createDecal(mesh: Mesh, texture: Texture, config: typeof config_c) {
   mesh.add(decal);
 }
 
-createDecal(ball, tsDecal, config_c);
+createDecal(ball, jsDecal, config_c);
 
-scene.add(new AmbientLight(0xffffff, 1));
+// scene.add(new AmbientLight(0xffffff, 1));
 
 // Helpers
 const axesHelper = new AxesHelper(10);
