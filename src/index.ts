@@ -33,6 +33,7 @@ import {
   RingGeometry,
   Scene,
   SphereGeometry,
+  Texture,
   TextureLoader,
   Timer,
   Vector3,
@@ -56,6 +57,20 @@ const el = document.querySelector('#root');
 
 const isDebug = window.location.hash === '#debug';
 
+const textureLodaer = new TextureLoader();
+const reactDecal = textureLodaer.load('/react.png');
+
+const decals = {
+  react: {
+    texture: reactDecal,
+    config: {
+      position: { x: 0.0, y: 0.6, z: 1.0 },
+      rotation: { x: -0.5, y: 0, z: 0 },
+      scale: 1.5,
+    },
+  },
+};
+
 const gravity = { x: 0, y: 0, z: 0 };
 
 let accent = 0;
@@ -67,7 +82,7 @@ const shuffle = (accent = 0) => [
   { color: 'white', roughness: 0.1, metalness: 0.1 },
   { color: 'white', roughness: 0.1, metalness: 0.1 },
   { color: 'white', roughness: 0.1, metalness: 0.1 },
-  { color: accents[accent], roughness: 0.1, accent: true },
+  { color: accents[accent], roughness: 0.1, accent: true, decal: decals.react },
   { color: accents[accent], roughness: 0.1, accent: true },
   { color: accents[accent], roughness: 0.1, accent: true },
   { color: '#444', roughness: 0.1 },
@@ -95,9 +110,6 @@ const spheres: Record<
     accent?: boolean;
   }
 > = {};
-
-const textureLodaer = new TextureLoader();
-const reactDecal = textureLodaer.load('/react.png');
 
 // Core
 const renderer = new WebGLRenderer({
@@ -174,8 +186,8 @@ const velocityDepthNormalPass = new VelocityDepthNormalPass(scene, camera);
 const ssgiEffect = new SSGIEffect(composer, scene, camera, { ...config, velocityDepthNormalPass });
 
 composer.addPass(velocityDepthNormalPass);
-// composer.addPass(new EffectPass(camera, ssgiEffect));
-// composer.addPass(new EffectPass(camera, bloomPass));
+composer.addPass(new EffectPass(camera, ssgiEffect));
+composer.addPass(new EffectPass(camera, bloomPass));
 composer.addPass(new EffectPass(camera, new FXAAEffect(), new ToneMappingEffect()));
 
 // World
@@ -207,7 +219,9 @@ function createSphere({ accent, ...props }: ReturnType<typeof shuffle>[number]) 
 
 for (const s of shuffle(accent)) {
   const sphere = createSphere(s);
-  // scene.add(sphere);
+  scene.add(sphere);
+
+  if (s.decal) createDecal(sphere, s.decal.texture, s.decal.config);
 
   const pos = new Vector3(
     MathUtils.randFloatSpread(10),
@@ -287,19 +301,20 @@ scene.add(ball);
 const config_c = {
   position: { x: 0.0, y: 0.6, z: 1.0 },
   rotation: { x: -0.5, y: 0, z: 0 },
+  scale: 1.5,
 };
-function createDecal(mesh: Mesh) {
+function createDecal(mesh: Mesh, texture: Texture, config: typeof config_c) {
   mesh.traverse((obj) => mesh.remove(obj));
   mesh.updateMatrixWorld();
 
   const decalGeometry = new DecalGeometry(
     mesh,
-    new Vector3().copy(config_c.position),
-    new Euler(config_c.rotation.x, config_c.rotation.y, config_c.rotation.z, 'XYZ'),
-    new Vector3().setScalar(1.5),
+    new Vector3().copy(config.position),
+    new Euler(config.rotation.x, config.rotation.y, config.rotation.z, 'XYZ'),
+    new Vector3().setScalar(config.scale),
   );
   const decalMaterial = new MeshPhysicalMaterial({
-    map: reactDecal,
+    map: texture,
     transparent: true,
     depthTest: true,
     depthWrite: true,
@@ -321,7 +336,7 @@ function createDecal(mesh: Mesh) {
   mesh.add(decal);
 }
 
-createDecal(ball);
+createDecal(ball, reactDecal, config_c);
 
 // Helpers
 const axesHelper = new AxesHelper(10);
@@ -343,8 +358,12 @@ f_physic.addBinding(debug, 'visible', {
   label: 'Debug Visibility',
 });
 
-pane.addBinding(config_c, 'position', { step: 0.01 }).on('change', () => createDecal(ball));
-pane.addBinding(config_c, 'rotation', { step: 0.01 }).on('change', () => createDecal(ball));
+pane
+  .addBinding(config_c, 'position', { step: 0.01 })
+  .on('change', () => createDecal(ball, reactDecal, config_c));
+pane
+  .addBinding(config_c, 'rotation', { step: 0.01 })
+  .on('change', () => createDecal(ball, reactDecal, config_c));
 
 const perf = new ThreePerf({
   anchorX: 'left',
