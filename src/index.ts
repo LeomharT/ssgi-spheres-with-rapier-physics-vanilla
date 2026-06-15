@@ -64,7 +64,7 @@ const tsDecal = textureLodaer.load('/ts.svg');
 const jsDecal = textureLodaer.load('/js.png');
 const viteDecal = textureLodaer.load('vite.png');
 
-const decals = {
+const decals: Record<string, { texture: Texture; config: typeof config_c }> = {
   react: {
     texture: reactDecal,
     config: {
