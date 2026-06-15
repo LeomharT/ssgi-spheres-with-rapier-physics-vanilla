@@ -80,6 +80,14 @@ const decals = {
       scale: 1.5,
     },
   },
+  ts: {
+    texture: tsDecal,
+    config: {
+      position: { x: 0, y: 0.58, z: 0.62 },
+      rotation: { x: -0.8, y: 0, z: 0 },
+      scale: 1.3,
+    },
+  },
 };
 
 const gravity = { x: 0, y: 0, z: 0 };
@@ -95,7 +103,7 @@ const shuffle = (accent = 0) => [
   { color: 'white', roughness: 0.1, metalness: 0.1 },
   { color: accents[accent], roughness: 0.1, accent: true, decal: decals.react },
   { color: accents[accent], roughness: 0.1, accent: true, decal: decals.three },
-  { color: accents[accent], roughness: 0.1, accent: true },
+  { color: accents[accent], roughness: 0.1, accent: true, decal: decals.ts },
   { color: '#444', roughness: 0.1 },
   { color: '#444', roughness: 0.3 },
   { color: '#444', roughness: 0.3 },
@@ -386,10 +394,13 @@ pane
   .addBinding(multilines, 'data', {
     readonly: true,
     multiline: true,
-    rows: 5,
+    rows: 10,
     label: 'config',
   })
   .on('change', () => (multilines.data = JSON.stringify(config_c, null, 2)));
+pane
+  .addButton({ title: 'Copy Config' })
+  .on('click', () => navigator.clipboard.writeText(JSON.stringify(config_c)));
 
 const perf = new ThreePerf({
   anchorX: 'left',
