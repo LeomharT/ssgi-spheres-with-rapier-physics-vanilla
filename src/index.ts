@@ -205,8 +205,8 @@ const velocityDepthNormalPass = new VelocityDepthNormalPass(scene, camera);
 const ssgiEffect = new SSGIEffect(composer, scene, camera, { ...config, velocityDepthNormalPass });
 
 composer.addPass(velocityDepthNormalPass);
-// composer.addPass(new EffectPass(camera, ssgiEffect));
-// composer.addPass(new EffectPass(camera, bloomPass));
+composer.addPass(new EffectPass(camera, ssgiEffect));
+composer.addPass(new EffectPass(camera, bloomPass));
 composer.addPass(new EffectPass(camera, new FXAAEffect(), new ToneMappingEffect()));
 
 // World
@@ -326,13 +326,13 @@ function createDecal(mesh: Mesh, texture: Texture, config: typeof config_c) {
   mesh.traverse((obj) => mesh.remove(obj));
   mesh.updateMatrixWorld();
 
-  const decalGeometry = new DecalGeometry(
+  const geometry = new DecalGeometry(
     mesh,
     new Vector3().copy(config.position),
     new Euler(config.rotation.x, config.rotation.y, config.rotation.z, 'XYZ'),
     new Vector3().setScalar(config.scale),
   );
-  const decalMaterial = new MeshPhysicalMaterial({
+  const material = new MeshPhysicalMaterial({
     map: texture,
     transparent: true,
     depthTest: true,
@@ -350,7 +350,7 @@ function createDecal(mesh: Mesh, texture: Texture, config: typeof config_c) {
     blending: NormalBlending,
   });
 
-  const decal = new Mesh(decalGeometry, decalMaterial);
+  const decal = new Mesh(geometry, material);
   decal.position.sub(mesh.position);
   mesh.add(decal);
 }
