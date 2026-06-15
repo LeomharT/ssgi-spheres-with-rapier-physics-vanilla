@@ -62,6 +62,7 @@ const reactDecal = textureLodaer.load('/react.png');
 const threeDecal = textureLodaer.load('/three.png');
 const tsDecal = textureLodaer.load('/ts.svg');
 const jsDecal = textureLodaer.load('/js.png');
+const viteDecal = textureLodaer.load('vite.png');
 
 const decals = {
   react: {
@@ -96,6 +97,14 @@ const decals = {
       scale: 1.3,
     },
   },
+  vite: {
+    texture: viteDecal,
+    config: {
+      position: { x: 0, y: 0.58, z: 0.62 },
+      rotation: { x: -0.8, y: 0, z: 0 },
+      scale: [1.618033988749, 1, 1],
+    },
+  },
 };
 
 const gravity = { x: 0, y: 0, z: 0 };
@@ -104,7 +113,7 @@ let accent = 0;
 const accents = ['#ff4060', '#ffcc00', '#20ffa0', '#4060ff'];
 const shuffle = (accent = 0) => [
   { color: '#444', roughness: 0.1, metalness: 0.5 },
-  { color: '#444', roughness: 0.1, metalness: 0.5 },
+  { color: '#444', roughness: 0.1, metalness: 0.5, decal: decals.vite },
   { color: '#444', roughness: 0.1, metalness: 0.5 },
   { color: 'white', roughness: 0.1, metalness: 0.1 },
   { color: 'white', roughness: 0.1, metalness: 0.1 },
@@ -322,17 +331,22 @@ scene.add(ball);
 const config_c = {
   position: { x: 0, y: 0.58, z: 0.62 },
   rotation: { x: -0.8, y: 0, z: 0 },
-  scale: 1.3,
+  scale: 1.3 as number | [number, number, number],
 };
 function createDecal(mesh: Mesh, texture: Texture, config: typeof config_c) {
   mesh.traverse((obj) => mesh.remove(obj));
   mesh.updateMatrixWorld();
 
+  const scale = new Vector3();
+
+  if (typeof config.scale === 'number') scale.setScalar(config.scale);
+  if (typeof config.scale === 'object') scale.set(...config.scale);
+
   const geometry = new DecalGeometry(
     mesh,
     new Vector3().copy(config.position),
     new Euler(config.rotation.x, config.rotation.y, config.rotation.z, 'XYZ'),
-    new Vector3().setScalar(config.scale),
+    scale,
   );
   const material = new MeshPhysicalMaterial({
     map: texture,
@@ -357,7 +371,7 @@ function createDecal(mesh: Mesh, texture: Texture, config: typeof config_c) {
   mesh.add(decal);
 }
 
-createDecal(ball, jsDecal, config_c);
+createDecal(ball, viteDecal, config_c);
 
 // scene.add(new AmbientLight(0xffffff, 1));
 
@@ -383,13 +397,13 @@ f_physic.addBinding(debug, 'visible', {
 
 pane
   .addBinding(config_c, 'position', { step: 0.01 })
-  .on('change', () => createDecal(ball, tsDecal, config_c));
+  .on('change', () => createDecal(ball, viteDecal, config_c));
 pane
   .addBinding(config_c, 'rotation', { step: 0.01 })
-  .on('change', () => createDecal(ball, tsDecal, config_c));
+  .on('change', () => createDecal(ball, viteDecal, config_c));
 pane
   .addBinding(config_c, 'scale', { step: 0.01 })
-  .on('change', () => createDecal(ball, tsDecal, config_c));
+  .on('change', () => createDecal(ball, viteDecal, config_c));
 
 const multilines = { data: '' };
 pane
