@@ -58,7 +58,7 @@ const isDebug = window.location.hash === '#debug';
 const textureLodaer = new TextureLoader();
 const reactDecal = textureLodaer.load('react.png');
 const threeDecal = textureLodaer.load('three.png');
-const tsDecal = textureLodaer.load('ts.svg');
+const tsDecal = textureLodaer.load('ts.png');
 const jsDecal = textureLodaer.load('js.png');
 const viteDecal = textureLodaer.load('vite.png');
 const nodejsDecal = textureLodaer.load('nodejs.png');
@@ -121,14 +121,14 @@ const accents = ['#ff4060', '#ffcc00', '#20ffa0', '#4060ff'];
 const shuffle = (accent = 0) => [
   { color: '#444', roughness: 0.1, metalness: 0.5 },
   { color: '#444', roughness: 0.1, metalness: 0.5, decal: decals.vite },
-  { color: '#444', roughness: 0.1, metalness: 0.5 },
+  { color: '#444', roughness: 0.1, metalness: 0.5, decal: decals.ts },
+  { color: 'white', roughness: 0.1, metalness: 0.1, decal: decals.react },
   { color: 'white', roughness: 0.1, metalness: 0.1 },
   { color: 'white', roughness: 0.1, metalness: 0.1 },
-  { color: 'white', roughness: 0.1, metalness: 0.1 },
-  { color: accents[accent], roughness: 0.1, accent: true, decal: decals.react },
-  { color: accents[accent], roughness: 0.1, accent: true, decal: decals.three },
-  { color: accents[accent], roughness: 0.1, accent: true, decal: decals.ts },
-  { color: '#444', roughness: 0.1 },
+  { color: accents[accent], roughness: 0.1, accent: true },
+  { color: accents[accent], roughness: 0.1, accent: true },
+  { color: accents[accent], roughness: 0.1, accent: true },
+  { color: '#444', roughness: 0.1, decal: decals.three },
   { color: '#444', roughness: 0.3, decal: decals.nodejs },
   { color: '#444', roughness: 0.3 },
   { color: 'white', roughness: 0.1 },
