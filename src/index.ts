@@ -58,11 +58,12 @@ const el = document.querySelector('#root');
 const isDebug = window.location.hash === '#debug';
 
 const textureLodaer = new TextureLoader();
-const reactDecal = textureLodaer.load('/react.png');
-const threeDecal = textureLodaer.load('/three.png');
-const tsDecal = textureLodaer.load('/ts.svg');
-const jsDecal = textureLodaer.load('/js.png');
+const reactDecal = textureLodaer.load('react.png');
+const threeDecal = textureLodaer.load('three.png');
+const tsDecal = textureLodaer.load('ts.svg');
+const jsDecal = textureLodaer.load('js.png');
 const viteDecal = textureLodaer.load('vite.png');
+const nodejsDecal = textureLodaer.load('nodejs.png');
 
 const decals: Record<string, { texture: Texture; config: typeof config_c }> = {
   react: {
@@ -105,6 +106,14 @@ const decals: Record<string, { texture: Texture; config: typeof config_c }> = {
       scale: [1.618033988749, 1, 1],
     },
   },
+  nodejs: {
+    texture: nodejsDecal,
+    config: {
+      position: { x: 0.05, y: 0.39, z: 0.62 },
+      rotation: { x: -0.5, y: 0, z: 0 },
+      scale: 1.63,
+    },
+  },
 };
 
 const gravity = { x: 0, y: 0, z: 0 };
@@ -122,7 +131,7 @@ const shuffle = (accent = 0) => [
   { color: accents[accent], roughness: 0.1, accent: true, decal: decals.three },
   { color: accents[accent], roughness: 0.1, accent: true, decal: decals.ts },
   { color: '#444', roughness: 0.1 },
-  { color: '#444', roughness: 0.3 },
+  { color: '#444', roughness: 0.3, decal: decals.nodejs },
   { color: '#444', roughness: 0.3 },
   { color: 'white', roughness: 0.1 },
   { color: 'white', roughness: 0.2, decal: decals.js },
@@ -371,7 +380,7 @@ function createDecal(mesh: Mesh, texture: Texture, config: typeof config_c) {
   mesh.add(decal);
 }
 
-createDecal(ball, viteDecal, config_c);
+createDecal(ball, nodejsDecal, config_c);
 
 // scene.add(new AmbientLight(0xffffff, 1));
 
@@ -397,13 +406,13 @@ f_physic.addBinding(debug, 'visible', {
 
 pane
   .addBinding(config_c, 'position', { step: 0.01 })
-  .on('change', () => createDecal(ball, viteDecal, config_c));
+  .on('change', () => createDecal(ball, nodejsDecal, config_c));
 pane
   .addBinding(config_c, 'rotation', { step: 0.01 })
-  .on('change', () => createDecal(ball, viteDecal, config_c));
+  .on('change', () => createDecal(ball, nodejsDecal, config_c));
 pane
   .addBinding(config_c, 'scale', { step: 0.01 })
-  .on('change', () => createDecal(ball, viteDecal, config_c));
+  .on('change', () => createDecal(ball, nodejsDecal, config_c));
 
 const multilines = { data: '' };
 pane
