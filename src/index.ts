@@ -62,8 +62,10 @@ const tsDecal = textureLodaer.load('ts.png');
 const jsDecal = textureLodaer.load('js.png');
 const viteDecal = textureLodaer.load('vite.png');
 const nodejsDecal = textureLodaer.load('nodejs.png');
+const nextjsDecal = textureLodaer.load('nextjs.png');
+const webglDecal = textureLodaer.load('webgl.png');
 
-const decals: Record<string, { texture: Texture; config: typeof config_c }> = {
+const decals = {
   react: {
     texture: reactDecal,
     config: {
@@ -112,14 +114,30 @@ const decals: Record<string, { texture: Texture; config: typeof config_c }> = {
       scale: 1.63,
     },
   },
-};
+  nextjs: {
+    texture: nextjsDecal,
+    config: {
+      position: { x: 0, y: 0.5, z: 0.6 },
+      rotation: { x: -0.66, y: 0, z: 0 },
+      scale: 2,
+    },
+  },
+  webgl: {
+    texture: webglDecal,
+    config: {
+      position: { x: 0, y: 0.58, z: 0.62 },
+      rotation: { x: -0.51, y: 0, z: 0 },
+      scale: [1.618033988749, 1, 1],
+    },
+  },
+} satisfies Record<string, { texture: Texture; config: typeof config_c }>;
 
 const gravity = { x: 0, y: 0, z: 0 };
 
 let accent = 0;
 const accents = ['#ff4060', '#ffcc00', '#20ffa0', '#4060ff'];
 const shuffle = (accent = 0) => [
-  { color: '#444', roughness: 0.1, metalness: 0.5 },
+  { color: '#444', roughness: 0.1, metalness: 0.5, decal: decals.nextjs },
   { color: '#444', roughness: 0.1, metalness: 0.5, decal: decals.vite },
   { color: '#444', roughness: 0.1, metalness: 0.5, decal: decals.ts },
   { color: 'white', roughness: 0.1, metalness: 0.1, decal: decals.react },
@@ -131,7 +149,7 @@ const shuffle = (accent = 0) => [
   { color: '#444', roughness: 0.1, decal: decals.three },
   { color: '#444', roughness: 0.3, decal: decals.nodejs },
   { color: '#444', roughness: 0.3 },
-  { color: 'white', roughness: 0.1 },
+  { color: 'white', roughness: 0.1, decal: decals.webgl },
   { color: 'white', roughness: 0.2, decal: decals.js },
   { color: 'white', roughness: 0.1 },
   { color: accents[accent], roughness: 0.1, accent: true, transparent: true, opacity: 0.5 },
@@ -384,7 +402,7 @@ function createDecal(mesh: Mesh, texture: Texture, config: typeof config_c) {
   mesh.add(decal);
 }
 
-createDecal(ball, nodejsDecal, config_c);
+createDecal(ball, webglDecal, config_c);
 
 // scene.add(new AmbientLight(0xffffff, 1));
 
@@ -410,13 +428,13 @@ f_physic.addBinding(debug, 'visible', {
 
 pane
   .addBinding(config_c, 'position', { step: 0.01 })
-  .on('change', () => createDecal(ball, nodejsDecal, config_c));
+  .on('change', () => createDecal(ball, webglDecal, config_c));
 pane
   .addBinding(config_c, 'rotation', { step: 0.01 })
-  .on('change', () => createDecal(ball, nodejsDecal, config_c));
+  .on('change', () => createDecal(ball, webglDecal, config_c));
 pane
   .addBinding(config_c, 'scale', { step: 0.01 })
-  .on('change', () => createDecal(ball, nodejsDecal, config_c));
+  .on('change', () => createDecal(ball, webglDecal, config_c));
 
 const multilines = { data: '' };
 pane
