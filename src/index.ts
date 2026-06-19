@@ -335,6 +335,7 @@ group.rotation.set(-Math.PI / 3, 0, 1);
 envScene.add(group);
 
 const ball = new Mesh(sphereGeometry, new MeshStandardMaterial({ wireframe: true }));
+ball.visible = false;
 scene.add(ball);
 
 const config_c = {
@@ -375,7 +376,12 @@ function createDecal(mesh: Mesh, texture: Texture, config: typeof config_c) {
     blending: NormalBlending,
   });
 
-  const decal = new Mesh(geometry, material);
+  const baseMaterial = new MeshBasicMaterial({
+    map: texture,
+    opacity: 0.75,
+  });
+
+  const decal = new Mesh(geometry, baseMaterial);
   decal.position.sub(mesh.position);
   mesh.add(decal);
 }
